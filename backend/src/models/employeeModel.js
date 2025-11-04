@@ -75,6 +75,10 @@ class Employee {
       bank_name,
       bank_branch,
       ifsc_code,
+      iban,
+      sort_code,
+      bank_country = 'Pakistan',
+      currency = 'PKR',
       salary,
       status = 'active',
       created_by
@@ -83,10 +87,10 @@ class Employee {
     try {
       const result = await pool.query(
         `INSERT INTO employees
-        (employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, salary, status, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, iban, sort_code, bank_country, currency, salary, status, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *`,
-        [employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, salary, status, created_by]
+        [employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, iban, sort_code, bank_country, currency, salary, status, created_by]
       );
       return result.rows[0];
     } catch (error) {
@@ -104,6 +108,10 @@ class Employee {
       bank_name,
       bank_branch,
       ifsc_code,
+      iban,
+      sort_code,
+      bank_country,
+      currency,
       salary,
       status,
       updated_by
@@ -113,11 +121,12 @@ class Employee {
       const result = await pool.query(
         `UPDATE employees
         SET employee_id = $1, full_name = $2, address = $3, bank_account_number = $4,
-            bank_name = $5, bank_branch = $6, ifsc_code = $7, salary = $8, status = $9,
-            updated_by = $10, updated_at = CURRENT_TIMESTAMP
-        WHERE id = $11
+            bank_name = $5, bank_branch = $6, ifsc_code = $7, iban = $8, sort_code = $9,
+            bank_country = $10, currency = $11, salary = $12, status = $13,
+            updated_by = $14, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $15
         RETURNING *`,
-        [employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, salary, status, updated_by, id]
+        [employee_id, full_name, address, bank_account_number, bank_name, bank_branch, ifsc_code, iban, sort_code, bank_country, currency, salary, status, updated_by, id]
       );
       return result.rows[0];
     } catch (error) {

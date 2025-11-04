@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { salaryAPI } from '../services/api';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { formatCurrency } from '../utils/currency';
 
 const Salary = () => {
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonth());
@@ -187,7 +188,19 @@ const Salary = () => {
           </div>
           <div className="card" style={{ background: '#dbeafe' }}>
             <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', color: '#1e40af' }}>Total Amount</h3>
-            <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>${parseFloat(statistics.total_amount).toFixed(2)}</p>
+            <div style={{ margin: 0 }}>
+              {statistics.currency_totals && Object.keys(statistics.currency_totals).length > 0 ? (
+                Object.entries(statistics.currency_totals).map(([currency, amount]) => (
+                  <p key={currency} style={{ margin: '0.25rem 0', fontSize: '1.25rem', fontWeight: '700' }}>
+                    {formatCurrency(amount, currency)}
+                  </p>
+                ))
+              ) : (
+                <p style={{ margin: 0, fontSize: '1.5rem', fontWeight: '700' }}>
+                  ${parseFloat(statistics.total_amount || 0).toFixed(2)}
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -252,7 +265,7 @@ const Salary = () => {
                   <td style={{ fontFamily: 'monospace' }}>{payment.bank_account_number}</td>
                   <td>{payment.bank_name || '-'}</td>
                   <td>{payment.ifsc_code || '-'}</td>
-                  <td style={{ fontWeight: '600' }}>${parseFloat(payment.amount).toFixed(2)}</td>
+                  <td style={{ fontWeight: '600' }}>{formatCurrency(payment.amount, payment.currency || 'PKR')}</td>
                   <td>
                     <span className={`badge ${
                       payment.status === 'processed' ? 'badge-success' :

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { employeeAPI } from '../services/api';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { formatCurrency } from '../utils/currency';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -141,7 +142,7 @@ const Dashboard = () => {
                     <td>{emp.employee_id}</td>
                     <td>{emp.full_name}</td>
                     <td>{emp.bank_account_number}</td>
-                    <td>${parseFloat(emp.salary).toFixed(2)}</td>
+                    <td>{formatCurrency(emp.salary, emp.currency || 'PKR')}</td>
                     <td>
                       <span className={`badge ${
                         emp.status === 'active' ? 'badge-success' :

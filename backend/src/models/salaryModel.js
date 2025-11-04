@@ -27,10 +27,10 @@ class Salary {
           // Create new payment record
           const payment = await client.query(
             `INSERT INTO salary_payments
-            (employee_id, payment_month, amount, status, processed_by)
-            VALUES ($1, $2, $3, 'pending', $4)
+            (employee_id, payment_month, amount, currency, status, processed_by)
+            VALUES ($1, $2, $3, $4, 'pending', $5)
             RETURNING *`,
-            [employee.id, paymentMonth, employee.salary, processedBy]
+            [employee.id, paymentMonth, employee.salary, employee.currency || 'PKR', processedBy]
           );
           payments.push(payment.rows[0]);
         }
@@ -57,7 +57,8 @@ class Salary {
           e.bank_account_number,
           e.bank_name,
           e.bank_branch,
-          e.ifsc_code
+          e.ifsc_code,
+          e.currency
         FROM salary_payments sp
         JOIN employees e ON sp.employee_id = e.id
         WHERE sp.payment_month = $1
@@ -127,12 +128,31 @@ class Salary {
           COUNT(CASE WHEN status = 'processed' THEN 1 END) as processed_count,
           COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_count,
           COALESCE(SUM(amount), 0) as total_amount,
-          COALESCE(SUM(CASE WHEN status = 'processed' THEN amount ELSE 0 END), 0) as processed_amount
-        FROM salary_payments
+          COALESCE(SUM(CASE WHEN status = 'processed' THEN amount ELSE 0 END), 0) as processed_amount,
+          json_agg(json_build_object('currency', sp.currency, 'amount', amount)) as amounts_by_currency
+        FROM salary_payments sp
         WHERE payment_month = $1`,
         [paymentMonth]
       );
-      return result.rows[0];
+
+      // Calculate totals by currency
+      const stats = result.rows[0];
+      const currencyTotals = {};
+
+      if (stats.amounts_by_currency && stats.amounts_by_currency[0]) {
+        stats.amounts_by_currency.forEach(item => {
+          const currency = item.currency || 'PKR';
+          if (!currencyTotals[currency]) {
+            currencyTotals[currency] = 0;
+          }
+          currencyTotals[currency] += parseFloat(item.amount);
+        });
+      }
+
+      stats.currency_totals = currencyTotals;
+      delete stats.amounts_by_currency; // Remove raw data
+
+      return stats;
     } catch (error) {
       throw error;
     }
