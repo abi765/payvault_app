@@ -9,8 +9,12 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
     bank_account_number: '',
     bank_name: '',
     bank_branch: '',
+    bank_country: 'Pakistan',
     ifsc_code: '',
+    iban: '',
+    sort_code: '',
     salary: '',
+    currency: 'PKR',
     status: 'active'
   });
   const [errors, setErrors] = useState({});
@@ -25,7 +29,14 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Auto-set currency based on bank country
+    if (name === 'bank_country') {
+      const currency = value === 'Pakistan' ? 'PKR' : value === 'United Kingdom' ? 'GBP' : 'PKR';
+      setFormData(prev => ({ ...prev, [name]: value, currency: currency }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
 
     // Clear error for this field
     if (errors[name]) {
@@ -64,10 +75,45 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
 
     if (!formData.bank_account_number.trim()) {
       newErrors.bank_account_number = 'Bank account number is required';
-    } else if (formData.bank_account_number.length < 8) {
-      newErrors.bank_account_number = 'Bank account must be at least 8 digits';
     } else if (!/^\d+$/.test(formData.bank_account_number)) {
       newErrors.bank_account_number = 'Bank account must contain only digits';
+    } else if (formData.bank_country === 'United Kingdom') {
+      // UK: 7-11 digits (8 is standard, but some older/building society accounts vary)
+      if (formData.bank_account_number.length < 7 || formData.bank_account_number.length > 11) {
+        newErrors.bank_account_number = 'UK bank account number must be 7-11 digits (8 is standard)';
+      }
+    } else if (formData.bank_country === 'Pakistan') {
+      // Pakistan: 10-20 digits
+      if (formData.bank_account_number.length < 10 || formData.bank_account_number.length > 20) {
+        newErrors.bank_account_number = 'Pakistani bank account number must be 10-20 digits';
+      }
+    }
+
+    // IBAN validation for Pakistani banks
+    if (formData.bank_country === 'Pakistan' && !formData.iban?.trim()) {
+      newErrors.iban = 'IBAN is required for Pakistani banks';
+    } else if (formData.iban && formData.bank_country === 'Pakistan') {
+      if (!/^PK[0-9]{2}[A-Z0-9]{20}$/.test(formData.iban)) {
+        newErrors.iban = 'Invalid Pakistani IBAN format (e.g., PK36SCBL0000001123456702)';
+      }
+    }
+
+    // Sort Code validation for UK banks
+    if (formData.bank_country === 'United Kingdom' && !formData.sort_code?.trim()) {
+      newErrors.sort_code = 'Sort Code is required for UK banks';
+    } else if (formData.sort_code && formData.bank_country === 'United Kingdom') {
+      // UK sort code: 6 digits, can be formatted as XX-XX-XX or XXXXXX
+      const cleanSortCode = formData.sort_code.replace(/-/g, '');
+      if (!/^[0-9]{6}$/.test(cleanSortCode)) {
+        newErrors.sort_code = 'Invalid UK Sort Code (e.g., 12-34-56 or 123456)';
+      }
+    }
+
+    // UK account number validation
+    if (formData.bank_country === 'United Kingdom' && formData.bank_account_number) {
+      if (formData.bank_account_number.length < 7 || formData.bank_account_number.length > 11) {
+        newErrors.bank_account_number = 'UK bank account number must be 7-11 digits (8 is standard)';
+      }
     }
 
     if (!formData.salary || parseFloat(formData.salary) <= 0) {
@@ -173,6 +219,87 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
               />
             </div>
 
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div className="form-group">
+                <label htmlFor="bank_country">Bank Country *</label>
+                <select
+                  id="bank_country"
+                  name="bank_country"
+                  className="form-control"
+                  value={formData.bank_country}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="Pakistan">Pakistan</option>
+                  <option value="United Kingdom">United Kingdom</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="bank_name">Bank Name *</label>
+                {formData.bank_country === 'Pakistan' ? (
+                  <select
+                    id="bank_name"
+                    name="bank_name"
+                    className="form-control"
+                    value={formData.bank_name}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Bank</option>
+                    <option value="Allied Bank Limited">Allied Bank Limited</option>
+                    <option value="Askari Bank">Askari Bank</option>
+                    <option value="Bank Alfalah">Bank Alfalah</option>
+                    <option value="Bank Al-Habib">Bank Al-Habib</option>
+                    <option value="Faysal Bank">Faysal Bank</option>
+                    <option value="Habib Bank Limited (HBL)">Habib Bank Limited (HBL)</option>
+                    <option value="Habib Metropolitan Bank">Habib Metropolitan Bank</option>
+                    <option value="JS Bank">JS Bank</option>
+                    <option value="MCB Bank">MCB Bank</option>
+                    <option value="Meezan Bank">Meezan Bank</option>
+                    <option value="National Bank of Pakistan (NBP)">National Bank of Pakistan (NBP)</option>
+                    <option value="Silk Bank">Silk Bank</option>
+                    <option value="Soneri Bank">Soneri Bank</option>
+                    <option value="Standard Chartered Bank">Standard Chartered Bank</option>
+                    <option value="Summit Bank">Summit Bank</option>
+                    <option value="United Bank Limited (UBL)">United Bank Limited (UBL)</option>
+                    <option value="Other">Other</option>
+                  </select>
+                ) : (
+                  <select
+                    id="bank_name"
+                    name="bank_name"
+                    className="form-control"
+                    value={formData.bank_name}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="">Select Bank</option>
+                    <option value="Barclays">Barclays</option>
+                    <option value="HSBC UK">HSBC UK</option>
+                    <option value="Lloyds Bank">Lloyds Bank</option>
+                    <option value="NatWest">NatWest</option>
+                    <option value="Royal Bank of Scotland (RBS)">Royal Bank of Scotland (RBS)</option>
+                    <option value="Santander UK">Santander UK</option>
+                    <option value="Halifax">Halifax</option>
+                    <option value="TSB Bank">TSB Bank</option>
+                    <option value="Co-operative Bank">Co-operative Bank</option>
+                    <option value="Nationwide Building Society">Nationwide Building Society</option>
+                    <option value="Metro Bank">Metro Bank</option>
+                    <option value="Monzo">Monzo</option>
+                    <option value="Revolut">Revolut</option>
+                    <option value="Starling Bank">Starling Bank</option>
+                    <option value="Virgin Money">Virgin Money</option>
+                    <option value="Yorkshire Bank">Yorkshire Bank</option>
+                    <option value="Clydesdale Bank">Clydesdale Bank</option>
+                    <option value="First Direct">First Direct</option>
+                    <option value="Bank of Scotland">Bank of Scotland</option>
+                    <option value="Other">Other</option>
+                  </select>
+                )}
+              </div>
+            </div>
+
             <div className="form-group">
               <label htmlFor="bank_account_number">Bank Account Number *</label>
               <input
@@ -182,49 +309,89 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
                 className="form-control"
                 value={formData.bank_account_number}
                 onChange={handleChange}
+                placeholder={formData.bank_country === 'United Kingdom' ? '7-11 digits, usually 8 (e.g., 12345678)' : '10-20 digits (e.g., 1234567890123)'}
                 required
               />
               {errors.bank_account_number && <div className="form-error">{errors.bank_account_number}</div>}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div className="form-group">
-                <label htmlFor="bank_name">Bank Name</label>
-                <input
-                  type="text"
-                  id="bank_name"
-                  name="bank_name"
-                  className="form-control"
-                  value={formData.bank_name}
-                  onChange={handleChange}
-                />
-              </div>
+            {formData.bank_country === 'United Kingdom' ? (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label htmlFor="sort_code">Sort Code *</label>
+                  <input
+                    type="text"
+                    id="sort_code"
+                    name="sort_code"
+                    className="form-control"
+                    value={formData.sort_code}
+                    onChange={handleChange}
+                    placeholder="12-34-56 or 123456"
+                    maxLength="8"
+                    required
+                  />
+                  {errors.sort_code && <div className="form-error">{errors.sort_code}</div>}
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="bank_branch">Bank Branch</label>
-                <input
-                  type="text"
-                  id="bank_branch"
-                  name="bank_branch"
-                  className="form-control"
-                  value={formData.bank_branch}
-                  onChange={handleChange}
-                />
+                <div className="form-group">
+                  <label htmlFor="bank_branch">Bank Branch</label>
+                  <input
+                    type="text"
+                    id="bank_branch"
+                    name="bank_branch"
+                    className="form-control"
+                    value={formData.bank_branch}
+                    onChange={handleChange}
+                    placeholder="Branch name/city"
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label htmlFor="iban">IBAN *</label>
+                  <input
+                    type="text"
+                    id="iban"
+                    name="iban"
+                    className="form-control"
+                    value={formData.iban}
+                    onChange={handleChange}
+                    placeholder="PK36SCBL0000001123456702"
+                    style={{ textTransform: 'uppercase' }}
+                    required
+                  />
+                  {errors.iban && <div className="form-error">{errors.iban}</div>}
+                </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="form-group">
+                  <label htmlFor="bank_branch">Bank Branch</label>
+                  <input
+                    type="text"
+                    id="bank_branch"
+                    name="bank_branch"
+                    className="form-control"
+                    value={formData.bank_branch}
+                    onChange={handleChange}
+                    placeholder="Branch name/city"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '1rem' }}>
               <div className="form-group">
-                <label htmlFor="ifsc_code">IFSC Code</label>
+                <label htmlFor="currency">Currency</label>
                 <input
                   type="text"
-                  id="ifsc_code"
-                  name="ifsc_code"
+                  id="currency"
+                  name="currency"
                   className="form-control"
-                  value={formData.ifsc_code}
-                  onChange={handleChange}
-                  style={{ textTransform: 'uppercase' }}
+                  value={formData.currency === 'PKR' ? 'PKR (Rs)' : formData.currency === 'GBP' ? 'GBP (£)' : 'USD ($)'}
+                  readOnly
+                  style={{ backgroundColor: '#f3f4f6', cursor: 'not-allowed' }}
                 />
+                <small style={{ color: '#6b7280', fontSize: '0.75rem' }}>Auto-set based on country</small>
               </div>
 
               <div className="form-group">
@@ -242,21 +409,22 @@ const EmployeeModal = ({ employee, onClose, onSave }) => {
                 />
                 {errors.salary && <div className="form-error">{errors.salary}</div>}
               </div>
-            </div>
 
-            <div className="form-group">
-              <label htmlFor="status">Status</label>
-              <select
-                id="status"
-                name="status"
-                className="form-control"
-                value={formData.status}
-                onChange={handleChange}
-              >
-                <option value="active">Active</option>
-                <option value="on_leave">On Leave</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <div className="form-group">
+                <label htmlFor="status">Status *</label>
+                <select
+                  id="status"
+                  name="status"
+                  className="form-control"
+                  value={formData.status}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="active">Active</option>
+                  <option value="on_leave">On Leave</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
             </div>
           </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { employeeAPI } from '../services/api';
 import { useWebSocket } from '../hooks/useWebSocket';
 import EmployeeModal from '../components/EmployeeModal';
+import { formatCurrency } from '../utils/currency';
 
 const Employees = () => {
   const [employees, setEmployees] = useState([]);
@@ -178,7 +179,7 @@ const Employees = () => {
                   <td>{emp.address || '-'}</td>
                   <td style={{ fontFamily: 'monospace' }}>{emp.bank_account_number}</td>
                   <td>{emp.bank_name || '-'}</td>
-                  <td>${parseFloat(emp.salary).toFixed(2)}</td>
+                  <td>{formatCurrency(emp.salary, emp.currency || 'PKR')}</td>
                   <td>
                     <span className={`badge ${
                       emp.status === 'active' ? 'badge-success' :

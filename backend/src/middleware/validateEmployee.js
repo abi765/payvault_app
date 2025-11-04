@@ -37,6 +37,40 @@ exports.validateEmployee = [
     .isLength({ max: 20 }).withMessage('IFSC code must not exceed 20 characters')
     .matches(/^[A-Z0-9]*$/).withMessage('IFSC code must contain only uppercase letters and numbers'),
 
+  body('iban')
+    .optional()
+    .trim()
+    .custom((value, { req }) => {
+      // IBAN is required for Pakistani banks
+      if (req.body.bank_country === 'Pakistan' && !value) {
+        throw new Error('IBAN is required for Pakistani banks');
+      }
+      // Validate IBAN format if provided
+      if (value) {
+        // Pakistani IBAN: 24 characters, starts with PK
+        if (req.body.bank_country === 'Pakistan') {
+          if (!/^PK[0-9]{2}[A-Z0-9]{20}$/.test(value)) {
+            throw new Error('Invalid Pakistani IBAN format (PK followed by 22 characters)');
+          }
+        } else {
+          // General IBAN validation (2-34 characters)
+          if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(value) || value.length > 34) {
+            throw new Error('Invalid IBAN format');
+          }
+        }
+      }
+      return true;
+    }),
+
+  body('bank_country')
+    .optional()
+    .trim()
+    .isLength({ max: 50 }).withMessage('Bank country must not exceed 50 characters'),
+
+  body('currency')
+    .optional()
+    .isIn(['PKR', 'GBP', 'USD']).withMessage('Currency must be PKR, GBP, or USD'),
+
   body('salary')
     .notEmpty().withMessage('Salary is required')
     .isFloat({ min: 0 }).withMessage('Salary must be a positive number'),
@@ -85,6 +119,40 @@ exports.validateEmployeeUpdate = [
     .trim()
     .isLength({ max: 20 }).withMessage('IFSC code must not exceed 20 characters')
     .matches(/^[A-Z0-9]*$/).withMessage('IFSC code must contain only uppercase letters and numbers'),
+
+  body('iban')
+    .optional()
+    .trim()
+    .custom((value, { req }) => {
+      // IBAN is required for Pakistani banks
+      if (req.body.bank_country === 'Pakistan' && !value) {
+        throw new Error('IBAN is required for Pakistani banks');
+      }
+      // Validate IBAN format if provided
+      if (value) {
+        // Pakistani IBAN: 24 characters, starts with PK
+        if (req.body.bank_country === 'Pakistan') {
+          if (!/^PK[0-9]{2}[A-Z0-9]{20}$/.test(value)) {
+            throw new Error('Invalid Pakistani IBAN format (PK followed by 22 characters)');
+          }
+        } else {
+          // General IBAN validation (2-34 characters)
+          if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(value) || value.length > 34) {
+            throw new Error('Invalid IBAN format');
+          }
+        }
+      }
+      return true;
+    }),
+
+  body('bank_country')
+    .optional()
+    .trim()
+    .isLength({ max: 50 }).withMessage('Bank country must not exceed 50 characters'),
+
+  body('currency')
+    .optional()
+    .isIn(['PKR', 'GBP', 'USD']).withMessage('Currency must be PKR, GBP, or USD'),
 
   body('salary')
     .optional()
