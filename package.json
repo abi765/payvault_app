@@ -1,0 +1,68 @@
+{
+  "name": "payvault",
+  "productName": "PayVault",
+  "version": "0.0.1",
+  "description": "Employee Salary Management System with Multi-Currency Support",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "npm run build:frontend && electron-builder",
+    "build:frontend": "cd frontend && npm run build",
+    "build:mac": "npm run build:frontend && electron-builder --mac",
+    "build:win": "npm run build:frontend && electron-builder --win",
+    "build:linux": "npm run build:frontend && electron-builder --linux",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": ["payroll", "salary", "employee", "management", "multi-currency"],
+  "author": "Your Name",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.payvault.app",
+    "productName": "PayVault",
+    "directories": {
+      "buildResources": "assets",
+      "output": "dist-electron"
+    },
+    "files": [
+      "main.js",
+      "backend/**/*",
+      "frontend/dist/**/*",
+      "!backend/node_modules/**/*",
+      "!**/.env",
+      "!**/*.log"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": ["**/*", "!node_modules", "!.env"]
+      }
+    ],
+    "mac": {
+      "target": ["dmg", "zip"],
+      "category": "public.app-category.business",
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "target": ["nsis", "portable"],
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Office",
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
