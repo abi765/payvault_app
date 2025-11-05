@@ -1,22 +1,38 @@
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
-const { spawn } = require('child_process');
+const { fork } = require('child_process');
 
 let mainWindow;
 let backendProcess;
+
+// Prevent multiple instances
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    // Someone tried to run a second instance, focus our window
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
 
 // Start backend server
 function startBackend() {
   console.log('Starting backend server...');
 
-  const backendPath = path.join(__dirname, 'backend', 'src', 'server.js');
+  const backendPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'backend', 'src', 'server.js')
+    : path.join(__dirname, 'backend', 'src', 'server.js');
 
-  // Use Electron's built-in Node.js executable
-  const nodePath = process.execPath;
+  console.log('Backend path:', backendPath);
 
-  backendProcess = spawn(nodePath, [backendPath], {
+  backendProcess = fork(backendPath, [], {
     env: { ...process.env, PORT: '5001', NODE_ENV: 'production' },
-    stdio: ['ignore', 'pipe', 'pipe']
+    stdio: ['ignore', 'pipe', 'pipe', 'ipc']
   });
 
   backendProcess.stdout.on('data', (data) => {
@@ -25,6 +41,10 @@ function startBackend() {
 
   backendProcess.stderr.on('data', (data) => {
     console.error(`Backend Error: ${data}`);
+  });
+
+  backendProcess.on('error', (error) => {
+    console.error('Failed to start backend:', error);
   });
 
   backendProcess.on('close', (code) => {
@@ -45,20 +65,33 @@ function createWindow() {
   });
 
   // Load the frontend
-  const frontendPath = path.join(__dirname, 'frontend', 'dist', 'index.html');
+  const frontendPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'app.asar', 'frontend', 'dist', 'index.html')
+    : path.join(__dirname, 'frontend', 'dist', 'index.html');
+
+  console.log('Frontend path:', frontendPath);
+  console.log('Is packaged:', app.isPackaged);
 
   // In production, load from dist folder
   if (app.isPackaged) {
-    mainWindow.loadFile(frontendPath);
+    mainWindow.loadFile(frontendPath).catch(err => {
+      console.error('Failed to load frontend:', err);
+      // Try alternative path
+      const altPath = path.join(__dirname, 'frontend', 'dist', 'index.html');
+      console.log('Trying alternative path:', altPath);
+      mainWindow.loadFile(altPath);
+    });
   } else {
     // In development, load from localhost
     mainWindow.loadURL('http://localhost:3000');
   }
 
-  // Open DevTools in development
-  if (!app.isPackaged) {
-    mainWindow.webContents.openDevTools();
-  }
+  // Open DevTools to debug issues
+  mainWindow.webContents.openDevTools();
+
+  mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription) => {
+    console.error('Failed to load:', errorCode, errorDescription);
+  });
 
   mainWindow.on('closed', function () {
     mainWindow = null;
