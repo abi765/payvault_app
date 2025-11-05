@@ -10,8 +10,13 @@ function startBackend() {
   console.log('Starting backend server...');
 
   const backendPath = path.join(__dirname, 'backend', 'src', 'server.js');
-  backendProcess = spawn('node', [backendPath], {
-    env: { ...process.env, PORT: '5001', NODE_ENV: 'production' }
+
+  // Use Electron's built-in Node.js executable
+  const nodePath = process.execPath;
+
+  backendProcess = spawn(nodePath, [backendPath], {
+    env: { ...process.env, PORT: '5001', NODE_ENV: 'production' },
+    stdio: ['ignore', 'pipe', 'pipe']
   });
 
   backendProcess.stdout.on('data', (data) => {
