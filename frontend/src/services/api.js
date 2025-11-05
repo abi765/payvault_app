@@ -70,4 +70,24 @@ export const salaryAPI = {
   exportPayments: (month) => api.get(`/salary/month/${month}/export`, { responseType: 'blob' }),
 };
 
+// Location API
+export const locationAPI = {
+  track: (locationData) => api.post('/location/track', locationData),
+  getHistory: (filters) => api.get('/location/history', { params: filters }),
+  getStats: (filters) => api.get('/location/stats', { params: filters }),
+  getAllLogs: (filters) => api.get('/location/logs', { params: filters }),
+};
+
+// Push Notification API
+export const pushAPI = {
+  getPublicKey: () => api.get('/push/vapid-public-key'),
+  subscribe: (subscription, deviceInfo) => api.post('/push/subscribe', { subscription, device_info: deviceInfo }),
+  unsubscribe: (endpoint) => api.post('/push/unsubscribe', { endpoint }),
+  sendTest: () => api.post('/push/test'),
+  getHistory: (filters) => api.get('/push/history', { params: filters }),
+  markAsRead: (notificationId) => api.post(`/push/notifications/${notificationId}/read`),
+  markAllAsRead: () => api.post('/push/notifications/read-all'),
+  sendToAll: (payload) => api.post('/push/send-all', payload),
+};
+
 export default api;

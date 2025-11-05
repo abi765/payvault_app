@@ -74,6 +74,68 @@ const createTables = async () => {
     `);
     console.log('✓ Audit logs table created');
 
+    // Create location logs table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS location_logs (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id),
+        action_type VARCHAR(100) NOT NULL,
+        latitude DECIMAL(10, 8),
+        longitude DECIMAL(11, 8),
+        accuracy DECIMAL(10, 2),
+        ip_address VARCHAR(45),
+        device_info JSONB,
+        action_data JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('✓ Location logs table created');
+
+    // Create push subscriptions table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS push_subscriptions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        endpoint TEXT NOT NULL,
+        p256dh_key TEXT NOT NULL,
+        auth_key TEXT NOT NULL,
+        device_info JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, endpoint)
+      );
+    `);
+    console.log('✓ Push subscriptions table created');
+
+    // Create notifications table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        title VARCHAR(255) NOT NULL,
+        body TEXT,
+        type VARCHAR(50),
+        data JSONB,
+        sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        read_at TIMESTAMP
+      );
+    `);
+    console.log('✓ Notifications table created');
+
+    // Create sync queue table (for offline sync)
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS sync_queue (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        action VARCHAR(20) NOT NULL,
+        entity_type VARCHAR(50) NOT NULL,
+        entity_data JSONB NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        synced BOOLEAN DEFAULT false,
+        synced_at TIMESTAMP
+      );
+    `);
+    console.log('✓ Sync queue table created');
+
     // Create indexes for better performance
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_employees_status ON employees(status);
@@ -82,6 +144,12 @@ const createTables = async () => {
       CREATE INDEX IF NOT EXISTS idx_salary_payments_status ON salary_payments(status);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_user ON audit_logs(user_id);
       CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
+      CREATE INDEX IF NOT EXISTS idx_location_logs_user ON location_logs(user_id);
+      CREATE INDEX IF NOT EXISTS idx_location_logs_action ON location_logs(action_type);
+      CREATE INDEX IF NOT EXISTS idx_push_subscriptions_user ON push_subscriptions(user_id);
+      CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id);
+      CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(user_id, read_at);
+      CREATE INDEX IF NOT EXISTS idx_sync_queue_user ON sync_queue(user_id, synced);
     `);
     console.log('✓ Database indexes created');
 

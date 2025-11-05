@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "migrate": "node src/config/migrate.js"
+    "migrate": "node src/config/migrate.js",
+    "generate-vapid": "node src/config/generateVapidKeys.js"
   },
   "keywords": ["payroll", "employee", "salary"],
   "author": "",
@@ -19,7 +20,9 @@
     "bcrypt": "^5.1.1",
     "jsonwebtoken": "^9.0.2",
     "express-validator": "^7.0.1",
-    "ws": "^8.14.2"
+    "ws": "^8.14.2",
+    "web-push": "^3.6.6",
+    "node-cron": "^3.0.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

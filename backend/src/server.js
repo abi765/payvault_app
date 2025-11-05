@@ -11,6 +11,8 @@ dotenv.config();
 const employeeRoutes = require('./routes/employeeRoutes');
 const salaryRoutes = require('./routes/salaryRoutes');
 const authRoutes = require('./routes/authRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const pushRoutes = require('./routes/pushRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -39,6 +41,8 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/salary', salaryRoutes);
+app.use('/api/location', locationRoutes);
+app.use('/api/push', pushRoutes);
 
 // WebSocket for real-time sync
 const clients = new Set();

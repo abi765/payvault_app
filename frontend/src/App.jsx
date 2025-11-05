@@ -6,6 +6,9 @@ import Dashboard from './pages/Dashboard';
 import Employees from './pages/Employees';
 import Salary from './pages/Salary';
 import Layout from './components/Layout';
+import InstallPrompt from './components/InstallPrompt';
+import OfflineIndicator from './components/OfflineIndicator';
+import UpdateBanner from './components/UpdateBanner';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -31,6 +34,8 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        <UpdateBanner />
+        <OfflineIndicator />
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route
@@ -46,6 +51,7 @@ function App() {
             <Route path="salary" element={<Salary />} />
           </Route>
         </Routes>
+        <InstallPrompt />
       </BrowserRouter>
     </AuthProvider>
   );
