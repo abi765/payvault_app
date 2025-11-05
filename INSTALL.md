@@ -33,7 +33,12 @@ Download `PayVault-0.0.1-arm64.dmg` from the [latest release](https://github.com
 
    **Option C: Using Terminal (Advanced)**
    ```bash
-   xattr -cr /Applications/PayVault.app
+   xattr -d com.apple.quarantine /Applications/PayVault.app
+   ```
+
+   Or if that doesn't work, try:
+   ```bash
+   xattr -c /Applications/PayVault.app
    ```
 
 4. **Future Launches**
