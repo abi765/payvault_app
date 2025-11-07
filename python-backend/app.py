@@ -10,7 +10,7 @@ from flask_bcrypt import Bcrypt
 from flask_jwt_extended import (
     JWTManager, create_access_token, jwt_required, get_jwt_identity
 )
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import secrets
 
@@ -147,11 +147,11 @@ def login():
         return jsonify({'error': {'message': 'Invalid credentials'}}), 401
 
     # Update last login
-    user.last_login = datetime.utcnow()
+    user.last_login = datetime.now(timezone.utc)
     db.session.commit()
 
-    # Create access token
-    access_token = create_access_token(identity=user.id)
+    # Create access token (identity must be string)
+    access_token = create_access_token(identity=str(user.id))
 
     return jsonify({
         'success': True,
@@ -163,7 +163,7 @@ def login():
 @app.route('/api/auth/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())  # Convert string back to int
     user = User.query.get(user_id)
 
     if not user:
@@ -262,7 +262,7 @@ def update_employee(emp_id):
     employee.ifsc_code = data.get('ifsc_code', employee.ifsc_code)
     employee.salary = data.get('salary', employee.salary)
     employee.status = data.get('status', employee.status)
-    employee.updated_at = datetime.utcnow()
+    employee.updated_at = datetime.now(timezone.utc)
 
     db.session.commit()
 
@@ -298,7 +298,7 @@ def generate_salary():
     if not month:
         return jsonify({'error': {'message': 'Month is required'}}), 400
 
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())  # Convert string back to int
 
     # Get active employees
     employees = Employee.query.filter_by(status='active').all()
@@ -370,11 +370,11 @@ def update_salary_status(payment_id):
         return jsonify({'error': {'message': 'Payment not found'}}), 404
 
     data = request.get_json()
-    user_id = get_jwt_identity()
+    user_id = int(get_jwt_identity())  # Convert string back to int
 
     payment.status = data.get('status', payment.status)
     payment.notes = data.get('notes', payment.notes)
-    payment.processed_at = datetime.utcnow()
+    payment.processed_at = datetime.now(timezone.utc)
     payment.processed_by = user_id
 
     db.session.commit()
