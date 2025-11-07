@@ -1,0 +1,3 @@
+python-backend/venv/
+python-backend/*.db
+python-backend/__pycache__/
