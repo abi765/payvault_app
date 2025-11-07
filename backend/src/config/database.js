@@ -7,9 +7,14 @@ const pool = new Pool({
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  ssl: {
-    rejectUnauthorized: false // Required for AWS RDS
-  },
+  ssl: process.env.NODE_ENV === 'production'
+    ? {
+        rejectUnauthorized: true, // Strict SSL validation in production
+        ca: process.env.DB_SSL_CA || undefined // Optional: specify CA certificate
+      }
+    : {
+        rejectUnauthorized: false // Allow self-signed certificates in development
+      },
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,

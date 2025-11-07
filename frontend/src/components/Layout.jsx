@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import PWAInstallButton from './PWAInstallButton';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -41,7 +42,8 @@ const Layout = () => {
               Employee Salary Management System
             </p>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <PWAInstallButton />
             <span style={{ fontSize: '0.875rem' }}>
               👤 {user?.full_name} ({user?.role})
             </span>
