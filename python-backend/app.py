@@ -108,7 +108,7 @@ class SalaryPayment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
-        emp = Employee.query.get(self.employee_id)
+        emp = db.session.get(Employee, self.employee_id)
         return {
             'id': self.id,
             'employee_id': self.employee_id,
@@ -164,7 +164,7 @@ def login():
 @jwt_required()
 def get_current_user():
     user_id = int(get_jwt_identity())  # Convert string back to int
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
 
     if not user:
         return jsonify({'error': {'message': 'User not found'}}), 404
@@ -247,7 +247,7 @@ def create_employee():
 @app.route('/api/employees/<int:emp_id>', methods=['PUT'])
 @jwt_required()
 def update_employee(emp_id):
-    employee = Employee.query.get(emp_id)
+    employee = db.session.get(Employee, emp_id)
     if not employee:
         return jsonify({'error': {'message': 'Employee not found'}}), 404
 
@@ -275,7 +275,7 @@ def update_employee(emp_id):
 @app.route('/api/employees/<int:emp_id>', methods=['DELETE'])
 @jwt_required()
 def delete_employee(emp_id):
-    employee = Employee.query.get(emp_id)
+    employee = db.session.get(Employee, emp_id)
     if not employee:
         return jsonify({'error': {'message': 'Employee not found'}}), 404
 
@@ -365,7 +365,7 @@ def get_salaries():
 @app.route('/api/salary/<int:payment_id>/status', methods=['PUT'])
 @jwt_required()
 def update_salary_status(payment_id):
-    payment = SalaryPayment.query.get(payment_id)
+    payment = db.session.get(SalaryPayment, payment_id)
     if not payment:
         return jsonify({'error': {'message': 'Payment not found'}}), 404
 
