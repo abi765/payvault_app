@@ -449,11 +449,11 @@ def init_db():
 
 # ==================== RUN APPLICATION ====================
 
-if __name__ == '__main__':
-    # Initialize database
-    init_db()
+# Initialize database on startup (for both development and production)
+init_db()
 
-    # Run the application
+if __name__ == '__main__':
+    # Run the application (development only)
     port = int(os.getenv('PORT', 5000))
     print(f"\n🚀 PayVault Python Backend running on http://localhost:{port}")
     print(f"📊 Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
