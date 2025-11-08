@@ -82,7 +82,10 @@ const PWAInstallButton = () => {
         message = 'To install:\n\n1. Click the ⊕ Install icon in the address bar\nOR\n2. Click Menu (⋮) → "Install PayVault..."';
         break;
       case 'safari':
-        message = 'To install:\n\n1. Click Share button\n2. Select "Add to Dock"';
+        message = 'To install on iPhone/iPad:\n\n1. Tap the Share button (box with arrow)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right\n\nOn Mac:\n1. Click Share button in toolbar\n2. Select "Add to Dock"';
+        break;
+      case 'ios-other':
+        message = '⚠️ PWA installation not supported in this browser on iOS.\n\nTo install PayVault:\n\n1. Open Safari browser\n2. Visit: payvault-app.onrender.com\n3. Tap Share button (box with arrow)\n4. Tap "Add to Home Screen"\n5. Tap "Add"\n\nPayVault will appear on your home screen!';
         break;
       case 'firefox':
         message = 'To install:\n\n1. Click the ⊕ icon in the address bar\nOR\n2. Enable PWA support in about:config';
@@ -96,6 +99,16 @@ const PWAInstallButton = () => {
 
   const detectBrowser = () => {
     const userAgent = navigator.userAgent.toLowerCase();
+    const isIOS = /iphone|ipad|ipod/.test(userAgent);
+
+    // On iOS, only Safari supports PWA installation
+    if (isIOS) {
+      if (userAgent.includes('safari') && !userAgent.includes('chrome') && !userAgent.includes('firefox')) {
+        return 'safari';
+      }
+      return 'ios-other'; // Firefox, Chrome, etc. on iOS
+    }
+
     if (userAgent.includes('edg')) return 'edge';
     if (userAgent.includes('chrome')) return 'chrome';
     if (userAgent.includes('safari') && !userAgent.includes('chrome')) return 'safari';
