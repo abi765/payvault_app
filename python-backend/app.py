@@ -40,7 +40,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(100), nullable=False)
     role = db.Column(db.String(20), default='user')  # admin, user, viewer
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     last_login = db.Column(db.DateTime)
 
     def set_password(self, password):
@@ -72,8 +72,8 @@ class Employee(db.Model):
     ifsc_code = db.Column(db.String(20))
     salary = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default='active')  # active, inactive, on_leave
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     salary_payments = db.relationship('SalaryPayment', backref='employee', lazy=True)
 
@@ -105,7 +105,7 @@ class SalaryPayment(db.Model):
     processed_at = db.Column(db.DateTime)
     processed_by = db.Column(db.Integer, db.ForeignKey('users.id'))
     notes = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
 
     def to_dict(self):
         emp = db.session.get(Employee, self.employee_id)
