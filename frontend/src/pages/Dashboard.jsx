@@ -28,7 +28,7 @@ const Dashboard = () => {
   const loadStats = async () => {
     try {
       const response = await employeeAPI.getAll();
-      const employees = response.data.data;
+      const employees = response.data.employees || [];
 
       setStats({
         total: employees.length,

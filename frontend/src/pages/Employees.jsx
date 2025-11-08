@@ -30,7 +30,7 @@ const Employees = () => {
   const loadEmployees = async () => {
     try {
       const response = await employeeAPI.getAll();
-      setEmployees(response.data.data);
+      setEmployees(response.data.employees || []);
     } catch (error) {
       showMessage('Failed to load employees', 'danger');
     } finally {
