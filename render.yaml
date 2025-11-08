@@ -1,0 +1,28 @@
+services:
+  # Python Backend API
+  - type: web
+    name: payvault-api
+    runtime: python
+    buildCommand: "cd python-backend && pip install -r requirements.txt"
+    startCommand: "cd python-backend && gunicorn app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+
+  # React Frontend Static Site
+  - type: web
+    name: payvault-app
+    runtime: static
+    buildCommand: "cd frontend && npm install && npm run build"
+    staticPublishPath: ./frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://payvault-api.onrender.com/api
